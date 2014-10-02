@@ -1,0 +1,43 @@
+{
+   "name": "semvername-matlab",
+   "version": "1.0.0",
+   "description": "Semantic Versioning and Semanticly Versioned Names for MATLAB.",
+   "keywords": [
+       "semver",
+       "semvername" 
+   ],
+   "maintainers": [
+       {
+           "name": "Paul Sexton",
+           "email": "psexton@gnresound.com"                                            
+       } 
+   ],
+   "contributors": [
+       {
+           "name": "Paul Sexton",
+           "email": "psexton@gnresound.com"                                            
+       } 
+   ],
+   "bugs": {
+       "web": "https://github.com/psexton/SemVerName-matlab/issues" 
+   },
+   "licenses": [
+       {
+           "type": "BSD-2-Clause",
+           "url": "http://opensource.org/licenses/BSD-2-Clause" 
+       } 
+   ],
+   "repositories": [
+       {
+           "type": "git",
+           "url": "https://github.com/psexton/SemVerName-matlab.git" 
+       } 
+   ],
+   "dependencies": {
+       "matlab": "R2010a"
+   },
+   "scripts": {
+       "load": "onLoad.m",
+       "unload": "onUnload.m" 
+   }
+}
