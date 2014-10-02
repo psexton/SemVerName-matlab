@@ -4,7 +4,7 @@ SemVerName-matlab
 Overview
 --------
 
-[Semantic Versioning (semver)](http://semver.org) and [Semantically Versioned Names (semvername)](http://semvarname.org), for matlab.
+[Semantic Versioning (semver)](http://semver.org) and [Semantically Versioned Names (semvername)](http://semvername.org), for matlab.
 
 Notes
 -----
