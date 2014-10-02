@@ -1,0 +1,1 @@
+There is no code in this directory. Matlab needs a folder named "semvername" in the path so that `help semvername` and `ver semvername` work properly.
