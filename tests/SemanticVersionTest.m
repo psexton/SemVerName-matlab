@@ -39,6 +39,21 @@ classdef SemanticVersionTest < TestCase
             assertEqual(expectedOrder, actualOrder);
             assertEqual(expectedIndices, actualIndices);
         end
+
+        function testSortPrerelease(~)
+            version1 = SemanticVersion('1.0.0-alpha');
+            version2 = SemanticVersion('1.0.0-alpha.1');
+            version3 = SemanticVersion('1.0.0-alpha.beta');
+            version4 = SemanticVersion('1.0.0-alpha.beta.2');
+            version5 = SemanticVersion('1.0.0-alpha.beta.11');
+            version6 = SemanticVersion('1.0.0-rc.1');
+            version7 = SemanticVersion('1.0.0');
+
+            expectedOrder = [version1; version2; version3; version4; version5; version6; version7];
+            actualOrder = sort([version6; version4; version1; version3; version2; version7; version5]);
+
+            assertEqual(expectedOrder, actualOrder);
+        end
         
         function testCanBeConvertedToCharacterArray(~)
             expectedVersion = '1.2.3';

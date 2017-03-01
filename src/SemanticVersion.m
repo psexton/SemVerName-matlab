@@ -60,22 +60,61 @@ classdef SemanticVersion < handle
             value = (value == floor(value));
         end
         
-        function tf = string_lt(~, str1, str2)
-            if(strcmp(str1, str2))
+        function tf = prerelease_lt(~, pre1, pre2)
+            if(strcmp(pre1, pre2))
                 tf = false;
-            elseif(~isempty(str1) && isempty(str2))
-                tf = true; % non-empty string < empty string
-            elseif(isempty(str1) && ~isempty(str2))
+            elseif(~isempty(pre1) && isempty(pre2))
+                tf = true; % non-empty prerelease < empty prerelease
+            elseif(isempty(pre1) && ~isempty(pre2))
                 tf = false;
             else
-                orig = {str1, str2};
-                sorted = sort(orig);
-                tf = strcmp(orig{1}, sorted{1}); % if str1 < str2, orig == sorted
+                % All identifier parts of the prerelease string need to be
+                % checked against each other to determine precedence
+                tf = false;
+
+                pre1Identifiers = regexp(pre1, '\.', 'split');
+                nPre1Identifiers = numel(pre1Identifiers);
+                pre2Identifiers = regexp(pre2, '\.', 'split');
+                nPre2Identifiers = numel(pre2Identifiers);
+
+                maxIdentifiersToCheck = min(nPre1Identifiers, nPre2Identifiers);
+                currentIdentifierIdx = 0;
+                while currentIdentifierIdx < maxIdentifiersToCheck && ~tf
+                  currentIdentifierIdx = currentIdentifierIdx + 1;
+                  pre1Number = str2double(pre1Identifiers{currentIdentifierIdx});
+                  pre2Number = str2double(pre2Identifiers{currentIdentifierIdx});
+                  pre1IsNumber = ~isnan(pre1Number);
+                  pre2IsNumber = ~isnan(pre2Number);
+
+                  if pre1IsNumber && pre2IsNumber
+                    % Numeric identifiers should be compared numerically
+                    tf = pre1Number < pre2Number;
+                  elseif pre1IsNumber && ~pre2IsNumber
+                    % Numeric identifiers always have lower precedence than
+                    % non-numeric identifiers
+                    tf = true;
+                  elseif ~pre1IsNumber && ~pre2IsNumber
+                    if ~strcmp(pre1Identifiers{currentIdentifierIdx}, pre2Identifiers{currentIdentifierIdx})
+                      % For string valued identifiers, lexicographical ordering
+                      % is used. If the prerelease identifiers are in sorted
+                      % order, the former is the 'lesser'
+                      tf = issorted({pre1Identifiers{currentIdentifierIdx}, ...
+                                     pre2Identifiers{currentIdentifierIdx}});
+                      currentIdentifierIdx = maxIdentifiersToCheck + 1;
+                    end
+                  end
+                end
+
+                % If all prerelease identifiers matched until now the
+                % prerelease with the most identifiers has precedence
+                if ~tf && currentIdentifierIdx == maxIdentifiersToCheck
+                    tf = nPre1Identifiers < nPre2Identifiers;
+                end
             end
         end
         
-        function tf = string_gt(obj, str1, str2)
-            tf = obj.string_lt(str2, str1);
+        function tf = prerelease_gt(obj, pre1, pre2)
+            tf = obj.prerelease_lt(pre2, pre1);
         end
     end
     
@@ -140,7 +179,7 @@ classdef SemanticVersion < handle
             value = (obj.major < otherObj.major) || ...
                 (obj.major == otherObj.major && obj.minor <  otherObj.minor) || ...
                 (obj.major == otherObj.major && obj.minor == otherObj.minor && obj.patch < otherObj.patch) || ...
-                (obj.major == otherObj.major && obj.minor == otherObj.minor && obj.patch == otherObj.patch && obj.string_lt(obj.prerelease, otherObj.prerelease));
+                (obj.major == otherObj.major && obj.minor == otherObj.minor && obj.patch == otherObj.patch && obj.prerelease_lt(obj.prerelease, otherObj.prerelease));
         end
         
         function value = cgt(obj, otherObj)
