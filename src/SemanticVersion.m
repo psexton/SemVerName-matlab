@@ -2,6 +2,7 @@ classdef SemanticVersion < handle
     %SEMANTICVERSION Represents a semantic version number
     
     properties (Access = public)
+        build_metadata = '';
         % A semantic version consists of three version parts
         major = 0;
         minor = 0;
@@ -32,7 +33,7 @@ classdef SemanticVersion < handle
         end
         
         function value = ensureValidPrereleaseValue(~, value)
-            assert(ischar(value),  'SemanticVersion:invalidValue', ...
+            assert(ischar(value), 'SemanticVersion:invalidValue', ...
                 'Prerelease should be specified as a string');
 
             expression = [
@@ -54,6 +55,17 @@ classdef SemanticVersion < handle
                 ['Prerelease strings consist of one or more (non-empty), ' ...
                  'dot separated identifiers containing alphanumerics and ' ...
                  'hyphens. Numeric identifiers cannot have leading zeros']);
+        end
+
+        function value = ensureValidBuildMetadataValue(~, value)
+            assert(ischar(value), 'SemanticVersion:invalidValue', ...
+                'Build metadata should be specified as a string');
+
+            expression = '((^|\.)[\da-zA-Z-]+)+';
+            match = regexp(value, expression, 'match', 'once');
+            assert(strcmp(match, value), 'SemanticVersion:invalidVersionPartValue', ...
+                ['Build metadata strings consist of one or more (non-empty), ' ...
+                 'dot separated identifiers containing alphanumerics and hyphens']);
         end
         
         function value = isInteger(~, value)
@@ -147,6 +159,10 @@ classdef SemanticVersion < handle
             else
                 value = sprintf('%d.%d.%d', obj.major, obj.minor, obj.patch);
             end
+
+            if(~isempty(obj.build_metadata))
+                value = sprintf('%s+%s', value, obj.build_metadata);
+            end
         end
         
         function value = eq(obj, otherObj)
@@ -209,12 +225,16 @@ classdef SemanticVersion < handle
         function set.prerelease(obj, value)
             obj.prerelease = obj.ensureValidPrereleaseValue(value);
         end
+
+        function set.build_metadata(obj, value)
+            obj.build_metadata = obj.ensureValidBuildMetadataValue(value);
+        end
         
         function set.string(obj, value)
             assert(ischar(value), 'SemanticVersion:invalidValue', ...
                 'Versions should be set using strings');
             
-            expression = '(\d+)\.?(\d+)\.?(\d+)(-.+)?';
+            expression = '(\d+)\.?(\d+)\.?(\d+)(-[^+]+)?(\+.+)?';
             versionPartValues = regexp(value, expression, 'tokens', 'once');
             nVersionPartValues = numel(versionPartValues);
             
@@ -226,15 +246,18 @@ classdef SemanticVersion < handle
             obj.minor = versionPartValues{2};
             obj.patch = versionPartValues{3};                        
             if nVersionPartValues > 3 && ~isempty(versionPartValues{4})
-                obj.prerelease = versionPartValues{4};
                 % need to strip off initial hyphen from prerelease
-                obj.prerelease = obj.prerelease(2:length(obj.prerelease));
+                obj.prerelease = versionPartValues{4}(2:length(versionPartValues{4}));
+            end
+            if nVersionPartValues > 4 && ~isempty(versionPartValues{5})
+                % need to strip off + from build metadata
+                obj.build_metadata = versionPartValues{5}(2:length(versionPartValues{5}));
             end
             
             % if something miscellaneously invalid was specified, then
             % value will not match our reconstructed string value
             assert(strcmp(value, obj.string), 'SemanticVersion:invalidVersionPartValue', ...
-                'Prerelease string must begin with a hyphen');
+                'Improperly structured semantic version ''%s'' specified', value);
         end
         
         function [sortedObj, idx] = sort(obj)
