@@ -9,13 +9,9 @@ Overview
 Notes
 -----
 
-Our implementation of Semantic Versioning almost precisely matches that of the Semantic Versioning Specification v1.0.0, with the following change:
+Our implementation of Semantic Versioning matches that of the Semantic Versioning Specification v2.0.0.
 
-In rule 2, major, minor, and patch versions must be non-negative integers.
-
-The sematic version specification is available at <http://semver.org/spec/v1.0.0.html>. A copy of the 1.0.0 spec is also mirrored here at "doc/semantic_versioning_spec_1.0.0.html".
-
-So while everything that is compatible with our implementation is valid for the 1.0.0 spec, not everything that is valid 1.0.0 SemVer is compatible with our implementation.
+The semantic version specification is available at <http://semver.org/spec/v2.0.0.html>. A copy of the v2.0.0 spec is mirrored here at "doc/semantic_versioning_spec_2.0.0.html".
 
 Installation
 ------------

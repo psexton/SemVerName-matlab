@@ -39,6 +39,21 @@ classdef SemanticVersionTest < TestCase
             assertEqual(expectedOrder, actualOrder);
             assertEqual(expectedIndices, actualIndices);
         end
+
+        function testSortPrerelease(~)
+            version1 = SemanticVersion('1.0.0-alpha');
+            version2 = SemanticVersion('1.0.0-alpha.1');
+            version3 = SemanticVersion('1.0.0-alpha.beta');
+            version4 = SemanticVersion('1.0.0-alpha.beta.2');
+            version5 = SemanticVersion('1.0.0-alpha.beta.11');
+            version6 = SemanticVersion('1.0.0-rc.1');
+            version7 = SemanticVersion('1.0.0');
+
+            expectedOrder = [version1; version2; version3; version4; version5; version6; version7];
+            actualOrder = sort([version6; version4; version1; version3; version2; version7; version5]);
+
+            assertEqual(expectedOrder, actualOrder);
+        end
         
         function testCanBeConvertedToCharacterArray(~)
             expectedVersion = '1.2.3';
@@ -49,6 +64,15 @@ classdef SemanticVersionTest < TestCase
             assertEqual(expectedVersion, char(version));
         end
         
+        function testCanBeConvertedToCharacterArrayWithBuildMetadata(~)
+            expectedVersion = '1.2.3+foo';
+
+            version = SemanticVersion();
+            version.string = expectedVersion;
+
+            assertEqual(expectedVersion, char(version));
+        end
+
         function testCanBeConvertedToCharacterArrayWithPrerelease(~)
             expectedVersion = '1.2.3-pre7';
             
@@ -58,18 +82,29 @@ classdef SemanticVersionTest < TestCase
             assertEqual(expectedVersion, char(version));
         end
         
+        function testCanBeConvertedToCharacterArrayWithPrerelaseAndBuildMetadata(~)
+            expectedVersion = '1.2.3-pre7+foo.bar';
+
+            version = SemanticVersion();
+            version.string = expectedVersion;
+
+            assertEqual(expectedVersion, char(version));
+        end
+
         function testCanBeInstantiatedUsingStringArgument(~)
             expectedMajor = 1;
             expectedMinor = 2;
             expectedPatch = 3;
             expectedPrerelease = 'beta1';
+            expectedBuildMetadata = 'build2';
             
-            version = SemanticVersion('1.2.3-beta1');
+            version = SemanticVersion('1.2.3-beta1+build2');
             
             assertEqual(expectedMajor, version.major);
             assertEqual(expectedMinor, version.minor);
             assertEqual(expectedPatch, version.patch);
             assertEqual(expectedPrerelease, version.prerelease);
+            assertEqual(expectedBuildMetadata, version.build_metadata);
         end
         
         function testCanDetermineEqualityRelation(~) % See bug #1301
@@ -187,6 +222,15 @@ classdef SemanticVersionTest < TestCase
             
             assertEqual(expectedPrerelease, version.prerelease);
         end
+
+        function testHasBuildMetadataVersionPart(~)
+            expectedBuildMetadata = 'build1';
+
+            version = SemanticVersion();
+            version.build_metadata = expectedBuildMetadata;
+
+            assertEqual(expectedBuildMetadata, version.build_metadata);
+        end
         
         function testMajorVersionPartDefaultsToZero(~)
             expectedMajor = 0;
@@ -219,12 +263,21 @@ classdef SemanticVersionTest < TestCase
             
             assertEqual(expectedPrerelease, version.prerelease);
         end
+
+        function testBuildMetadataVersionPartDefaultsToEmpty(~)
+            expectedBuildMetadata = '';
+
+            version = SemanticVersion();
+
+            assertEqual(expectedBuildMetadata, version.build_metadata);
+        end
         
         function testShouldBeAbleToSetVersionNumberFromString(~)
             expectedMajor = 1;
             expectedMinor = 2;
             expectedPatch = 3;
             expectedPrerelease = '';
+            expectedBuildMetadata = '';
             
             version = SemanticVersion();
             version.string = '1.2.3';
@@ -233,6 +286,7 @@ classdef SemanticVersionTest < TestCase
             assertEqual(expectedMinor, version.minor);
             assertEqual(expectedPatch, version.patch);
             assertEqual(expectedPrerelease, version.prerelease);
+            assertEqual(expectedBuildMetadata, version.build_metadata);
         end
         
         function testShouldBeAbleToSetPrereleaseFromString(~)
@@ -240,6 +294,7 @@ classdef SemanticVersionTest < TestCase
             expectedMinor = 2;
             expectedPatch = 3;
             expectedPrerelease = 'beta2';
+            expectedBuildMetadata = '';
             
             version = SemanticVersion();
             version.string = '1.2.3-beta2';
@@ -248,6 +303,41 @@ classdef SemanticVersionTest < TestCase
             assertEqual(expectedMinor, version.minor);
             assertEqual(expectedPatch, version.patch);
             assertEqual(expectedPrerelease, version.prerelease);
+            assertEqual(expectedBuildMetadata, version.build_metadata);
+        end
+
+        function testShouldBeAbleToSetBuildMetadataFromString(~)
+            expectedMajor = 1;
+            expectedMinor = 2;
+            expectedPatch = 3;
+            expectedPrerelease = '';
+            expectedBuildMetadata = 'build1';
+
+            version = SemanticVersion();
+            version.string = '1.2.3+build1';
+
+            assertEqual(expectedMajor, version.major);
+            assertEqual(expectedMinor, version.minor);
+            assertEqual(expectedPatch, version.patch);
+            assertEqual(expectedPrerelease, version.prerelease);
+            assertEqual(expectedBuildMetadata, version.build_metadata);
+        end
+
+        function testShouldBeAbleToSetPrerelaseAndBuildMetadataFromString(~)
+            expectedMajor = 1;
+            expectedMinor = 2;
+            expectedPatch = 3;
+            expectedPrerelease = 'beta2';
+            expectedBuildMetadata = 'build1';
+
+            version = SemanticVersion();
+            version.string = '1.2.3-beta2+build1';
+
+            assertEqual(expectedMajor, version.major);
+            assertEqual(expectedMinor, version.minor);
+            assertEqual(expectedPatch, version.patch);
+            assertEqual(expectedPrerelease, version.prerelease);
+            assertEqual(expectedBuildMetadata, version.build_metadata);
         end
         
         function testStoresVersionPartsAsDoubles(~)
@@ -286,6 +376,13 @@ classdef SemanticVersionTest < TestCase
             assertExceptionThrown(functionCall, expectedException);
         end
         
+        function testBuildMetadataPropertyRequiresCharacterArray(obj)
+            expectedException = 'SemanticVersion:invalidValue';
+
+            functionCall = @() obj.assignValueToProperty(1, 'build_metadata');
+            assertExceptionThrown(functionCall, expectedException);
+        end
+
         function testVersionPartsShouldBeNumericOrStringsContainingDigits(obj)
             expectedException = 'SemanticVersion:invalidVersionPartValue';
             
@@ -318,12 +415,124 @@ classdef SemanticVersionTest < TestCase
             functionCall = @() obj.assignValueToProperty(-1, 'major');
             assertExceptionThrown(functionCall, expectedException);
         end
+
+        function testPrereleasePartShouldAcceptDotSeparatedIdentifiers(obj)
+            prereleaseString = 'rc.1.beta';
+
+            try
+                obj.assignValueToProperty(prereleaseString, 'prerelease');
+            catch exception %#ok<NASGU>
+            end
+
+            assertEqual(exist('exception', 'var'), 0, ...
+                sprintf('Prerelease string ''%s'' was rejected', prereleaseString));
+        end
+
+        function testPrereleasePartShouldAcceptEmptyString(obj)
+            prereleaseString = '';
+
+            try
+                obj.assignValueToProperty(prereleaseString, 'prerelease');
+            catch exception %#ok<NASGU>
+            end
+
+            assertEqual(exist('exception', 'var'), 0, ...
+                sprintf('Prerelease string ''%s'' was rejected', prereleaseString));
+        end
+
+        function testPrereleasePartShouldAcceptLeadingZeroesOnAlphaIdentifier(obj)
+            prereleaseString = '0123alpha456';
+
+            try
+                obj.assignValueToProperty(prereleaseString, 'prerelease');
+            catch exception %#ok<NASGU>
+            end
+
+            assertEqual(exist('exception', 'var'), 0, ...
+                sprintf('Prerelease string ''%s'' was rejected', prereleaseString));
+        end
+
+        function testPrereleasePartShouldAcceptSingleZero(obj)
+            prereleaseString = '0';
+
+            try
+                obj.assignValueToProperty(prereleaseString, 'prerelease');
+            catch exception %#ok<NASGU>
+            end
+
+            assertEqual(exist('exception', 'var'), 0, ...
+                sprintf('Prerelease string ''%s'' was rejected', prereleaseString));
+        end
+
+        function testPrereleasePartShouldRejectEmptyIdentifiers(obj)
+            prereleaseString = '1..3';
+            expectedException = 'SemanticVersion:invalidVersionPartValue';
+
+            functionCall = @() obj.assignValueToProperty(prereleaseString, 'prerelease');
+            assertExceptionThrown(functionCall, expectedException, ...
+                sprintf('Prerelease string ''%s'' was accepted', prereleaseString));
+        end
+
+        function testPrereleasePartShouldRejectLeadingZeroesOnNumericIdentifier(obj)
+            prereleaseString = '01';
+            expectedException = 'SemanticVersion:invalidVersionPartValue';
+
+            functionCall = @() obj.assignValueToProperty(prereleaseString, 'prerelease');
+            assertExceptionThrown(functionCall, expectedException, ...
+                sprintf('Prerelease string ''%s'' was accepted', prereleaseString));
+        end
         
         function testPrereleasePartShouldRejectNonAlphanumericNonDash(obj)
+            prereleaseString = '1_2';
             expectedException = 'SemanticVersion:invalidVersionPartValue';
-            
-            functionCall = @() obj.assignValueToProperty('1.2', 'prerelease'); % period is not valid in a prerelease string
-            assertExceptionThrown(functionCall, expectedException);
+
+            functionCall = @() obj.assignValueToProperty(prereleaseString, 'prerelease');
+            assertExceptionThrown(functionCall, expectedException, ...
+                sprintf('Prerelease string ''%s'' was accepted', prereleaseString));
+        end
+
+        function testBuildMetadataPartShouldAcceptSingleIdentifier(obj)
+            buildMetadataString = 'build1';
+
+            try
+                obj.assignValueToProperty(buildMetadataString, 'build_metadata');
+            catch exception %#ok<NASGU>
+            end
+
+            assertEqual(exist('exception', 'var'), 0, ...
+                sprintf('Build metadata string ''%s'' was rejected', buildMetadataString));
+        end
+
+        function testBuildMetadataPartShouldAcceptDotSeparatedIdentifiers(obj)
+            buildMetadataString = 'build1.build2';
+
+            try
+                obj.assignValueToProperty(buildMetadataString, 'build_metadata');
+            catch exception %#ok<NASGU>
+            end
+
+            assertEqual(exist('exception', 'var'), 0, ...
+                sprintf('Build metadata string ''%s'' was rejected', buildMetadataString));
+        end
+
+        function testBuildMetadataShouldRejectEmptyIdentifiers(obj)
+            buildMetadataString = 'build1..build3';
+            expectedException = 'SemanticVersion:invalidVersionPartValue';
+
+            functionCall = @() obj.assignValueToProperty(buildMetadataString, 'build_metadata');
+            assertExceptionThrown(functionCall, expectedException, ...
+                sprintf('Build metadata string ''%s'' was accepted', buildMetadataString));
+        end
+
+        function testBuildMetadataShouldRejectInvalidIdentifierCharacters(obj)
+            % Only alphanumerics and hyphens are allowed in build metadata
+            % identifiers
+            buildMetadataString = 'build1.foo+bar';
+            expectedException = 'SemanticVersion:invalidVersionPartValue';
+
+            functionCall = @() obj.assignValueToProperty(buildMetadataString, 'build_metadata');
+            assertExceptionThrown(functionCall, expectedException, ...
+                sprintf('Build metadata string ''%s'' was accepted', buildMetadataString));
         end
         
         function testCtrShouldRejectNonIntegerValues(~)
