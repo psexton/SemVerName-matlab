@@ -34,12 +34,26 @@ classdef SemanticVersion < handle
         function value = ensureValidPrereleaseValue(~, value)
             assert(ischar(value),  'SemanticVersion:invalidValue', ...
                 'Prerelease should be specified as a string');
-            
-            % check for non-alphanumeric non-hyphen characters
-            expression = '[^\da-zA-Z-]';
-            matchstart = regexp(value, expression, 'start', 'once');
-            assert(isempty(matchstart), 'SemanticVersion:invalidVersionPartValue', ...
-                'Prerelease string can only contain alphanumerics and hyphens');
+
+            expression = [
+              '(' ... % A prerelease consists of one or more identifiers
+                '(^|\.)[\da-zA-Z-]' ... % which start at the beginning of the
+                                    ... % string or after a dot and need to
+                                    ... % contain at least one valid character.
+                '(' ... % This single character can be followed by either
+                    '((?<!0)\d+)|' ... % one or more digits if it was not a 0 or
+                    ... % any combination of other valid characters if at least
+                    ... % one is not a digit
+                    '([\da-zA-Z-]*[a-zA-Z-][\da-zA-Z-]*)' ...
+                ')?' ... % but this is optional
+              ')+$'
+            ];
+            match = regexp(value, expression, 'match', 'once');
+
+            assert(strcmp(match, value), 'SemanticVersion:invalidVersionPartValue', ...
+                ['Prerelease strings consist of one or more (non-empty), ' ...
+                 'dot separated identifiers containing alphanumerics and ' ...
+                 'hyphens. Numeric identifiers cannot have leading zeros']);
         end
         
         function value = isInteger(~, value)

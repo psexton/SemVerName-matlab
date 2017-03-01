@@ -318,12 +318,80 @@ classdef SemanticVersionTest < TestCase
             functionCall = @() obj.assignValueToProperty(-1, 'major');
             assertExceptionThrown(functionCall, expectedException);
         end
+
+        function testPrereleasePartShouldAcceptDotSeparatedIdentifiers(obj)
+            prereleaseString = 'rc.1.beta';
+
+            try
+                obj.assignValueToProperty(prereleaseString, 'prerelease');
+            catch exception %#ok<NASGU>
+            end
+
+            assertEqual(exist('exception', 'var'), 0, ...
+                sprintf('Prerelease string ''%s'' was rejected', prereleaseString));
+        end
+
+        function testPrereleasePartShouldAcceptEmptyString(obj)
+            prereleaseString = '';
+
+            try
+                obj.assignValueToProperty(prereleaseString, 'prerelease');
+            catch exception %#ok<NASGU>
+            end
+
+            assertEqual(exist('exception', 'var'), 0, ...
+                sprintf('Prerelease string ''%s'' was rejected', prereleaseString));
+        end
+
+        function testPrereleasePartShouldAcceptLeadingZeroesOnAlphaIdentifier(obj)
+            prereleaseString = '0123alpha456';
+
+            try
+                obj.assignValueToProperty(prereleaseString, 'prerelease');
+            catch exception %#ok<NASGU>
+            end
+
+            assertEqual(exist('exception', 'var'), 0, ...
+                sprintf('Prerelease string ''%s'' was rejected', prereleaseString));
+        end
+
+        function testPrereleasePartShouldAcceptSingleZero(obj)
+            prereleaseString = '0';
+
+            try
+                obj.assignValueToProperty(prereleaseString, 'prerelease');
+            catch exception %#ok<NASGU>
+            end
+
+            assertEqual(exist('exception', 'var'), 0, ...
+                sprintf('Prerelease string ''%s'' was rejected', prereleaseString));
+        end
+
+        function testPrereleasePartShouldRejectEmptyIdentifiers(obj)
+            prereleaseString = '1..3';
+            expectedException = 'SemanticVersion:invalidVersionPartValue';
+
+            functionCall = @() obj.assignValueToProperty(prereleaseString, 'prerelease');
+            assertExceptionThrown(functionCall, expectedException, ...
+                sprintf('Prerelease string ''%s'' was accepted', prereleaseString));
+        end
+
+        function testPrereleasePartShouldRejectLeadingZeroesOnNumericIdentifier(obj)
+            prereleaseString = '01';
+            expectedException = 'SemanticVersion:invalidVersionPartValue';
+
+            functionCall = @() obj.assignValueToProperty(prereleaseString, 'prerelease');
+            assertExceptionThrown(functionCall, expectedException, ...
+                sprintf('Prerelease string ''%s'' was accepted', prereleaseString));
+        end
         
         function testPrereleasePartShouldRejectNonAlphanumericNonDash(obj)
+            prereleaseString = '1_2';
             expectedException = 'SemanticVersion:invalidVersionPartValue';
-            
-            functionCall = @() obj.assignValueToProperty('1.2', 'prerelease'); % period is not valid in a prerelease string
-            assertExceptionThrown(functionCall, expectedException);
+
+            functionCall = @() obj.assignValueToProperty(prereleaseString, 'prerelease');
+            assertExceptionThrown(functionCall, expectedException, ...
+                sprintf('Prerelease string ''%s'' was accepted', prereleaseString));
         end
         
         function testCtrShouldRejectNonIntegerValues(~)
