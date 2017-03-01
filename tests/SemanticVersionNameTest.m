@@ -107,6 +107,16 @@ classdef SemanticVersionNameTest < TestCase
             assertEqual(expectedName, versionName.name);
             assertEqual(expectedSemVer, versionName.semver);
         end
+
+        function testCanBeInstantiatedUsingStringContaingBuildMetadata(~)
+            expectedName = 'wonka-chocolate';
+            expectedSemVer = SemanticVersion('3.2.1-pre4+build1');
+
+            versionName = SemanticVersionName('wonka-chocolate-3.2.1-pre4+build1');
+
+            assertEqual(expectedName, versionName.name);
+            assertEqual(expectedSemVer, versionName.semver);
+        end
         
         function testHasNamePart(~)
             expectedName = 'hello_World';

@@ -128,7 +128,7 @@ classdef SemanticVersionName < handle
             assert(ischar(value), 'SemanticVersionName:invalidValue', ...
                 'VersionNames should be set using strings');
             
-            expression = '([\w-]+)-((\d+\.\d+\.\d+)(-.+)?)';
+            expression = '^([\w-]+)-((\d+\.\d+\.\d+)(-[^+]+)?(\+.+)?)$';
             versionnamePartValues = regexp(value, expression, 'tokens', 'once');
             nVersionnamePartValues = numel(versionnamePartValues);
             
