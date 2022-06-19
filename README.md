@@ -21,7 +21,7 @@ Run the `onLoad` script to load this package onto the MATLAB path. Run the `onUn
 Dependencies
 ------------
 
-* MATLAB 2010a or later.
+* MATLAB 2017b or later.
 * [matlab-xunit-4.0.0](https://github.com/psexton/matlab-xunit), only if you want to run the unit tests.
 
 License
