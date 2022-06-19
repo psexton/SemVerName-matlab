@@ -211,26 +211,32 @@ classdef SemanticVersion < handle
         end
         
         function set.major(obj, value)
+            value = convertStringsToChars(value);
             obj.major = obj.ensureValidVersionPartValue(value);
         end
         
         function set.minor(obj, value)
+            value = convertStringsToChars(value);
             obj.minor = obj.ensureValidVersionPartValue(value);
         end
         
         function set.patch(obj, value)
+            value = convertStringsToChars(value);
             obj.patch = obj.ensureValidVersionPartValue(value);
         end
         
         function set.prerelease(obj, value)
+            value = convertStringsToChars(value);
             obj.prerelease = obj.ensureValidPrereleaseValue(value);
         end
 
         function set.build_metadata(obj, value)
+            value = convertStringsToChars(value);
             obj.build_metadata = obj.ensureValidBuildMetadataValue(value);
         end
         
         function set.string(obj, value)
+            value = convertStringsToChars(value);
             assert(ischar(value), 'SemanticVersion:invalidValue', ...
                 'Versions should be set using strings');
             

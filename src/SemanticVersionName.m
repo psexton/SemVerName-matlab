@@ -117,14 +117,17 @@ classdef SemanticVersionName < handle
         end
         
         function set.name(obj, value)
+            value = convertStringsToChars(value);
             obj.name = obj.ensureValidNamePartValue(value);
         end
         
         function set.semver(obj, value)
+            value = convertStringsToChars(value);
             obj.semver = obj.ensureValidSemVerPartValue(value);
         end
         
         function set.string(obj, value)
+            value = convertStringsToChars(value);
             assert(ischar(value), 'SemanticVersionName:invalidValue', ...
                 'VersionNames should be set using strings');
             
