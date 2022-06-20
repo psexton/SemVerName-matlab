@@ -48,6 +48,23 @@ classdef SemanticVersionName < handle
             tf = obj.string_lt(str2, str1);
         end
     end
+
+    methods (Static)
+            function tf = isValid(value)
+                % The logic for validating a pattern is baked so tightly into the setters,
+                % just try to instantiate it and catch exceptions
+                try
+                    temp = SemanticVersionName(value);
+                    tf = true;
+                catch ME
+                    if(startsWith(ME.identifier, "SemanticVersionName:"))
+                        tf = false;
+                    else
+                        rethrow(ME)
+                    end
+                end
+            end
+        end
     
     methods
         function obj = SemanticVersionName(varargin)

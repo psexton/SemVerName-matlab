@@ -129,7 +129,24 @@ classdef SemanticVersion < handle
             tf = obj.prerelease_lt(pre2, pre1);
         end
     end
-    
+
+    methods (Static)
+        function tf = isValid(value)
+            % The logic for validating a pattern is baked so tightly into the setters,
+            % just try to instantiate it and catch exceptions
+            try
+                temp = SemanticVersion(value);
+                tf = true;
+            catch ME
+                if(startsWith(ME.identifier, "SemanticVersion:"))
+                    tf = false;
+                else
+                    rethrow(ME)
+                end
+            end
+        end
+    end
+
     methods
         function obj = SemanticVersion(versionString)
             if nargin > 0
